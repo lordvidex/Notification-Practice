@@ -27,7 +27,9 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
+  bool first= true;
   Future onSelectNotification(String payload) async {
+    debugPrint('onSelectNotification');
     if (payload != null) {
       debugPrint('notification payload: ' + payload);
     }
@@ -64,27 +66,42 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<void> _scheduleNotification() async {
     var scheduleTime = DateTime.now().add(Duration(seconds: 5));
-
     var androidPlatformChannelSpecifics = AndroidNotificationDetails(
-        'Alarm Channel',
-        'Life And Success channelName',
-        'It is time to wake Nigga',importance: Importance.Max, priority: Priority.Max,playSound: true,);
+      'channel_id',
+      'channel_name',
+      'description',
+      ticker: 'ticker',
+      importance: Importance.Max,
+      priority: Priority.Max,
+      playSound: true,
+      category: "call",
+      ongoing: true,
+    );
     var iOSPlatformChannelSpecifics = IOSNotificationDetails();
     var platformChannelSpecifics = NotificationDetails(
         androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
-    await flutterLocalNotificationsPlugin.schedule(0, 'Alarm Channel',
-        'Life and Success', scheduleTime, platformChannelSpecifics);
+    await flutterLocalNotificationsPlugin.schedule(
+      0,
+      'Alarm Channel',
+      'Alarm',
+      scheduleTime,
+      platformChannelSpecifics,
+      payload: 'alarm',
+      androidAllowWhileIdle: true,
+    );
   }
 
   @override
-  void initState(){
+  void initState() {
     flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
     var initAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
     var initIos = IOSInitializationSettings(
         onDidReceiveLocalNotification: onDidReceiveLocalNotification);
     var initSettings = InitializationSettings(initAndroid, initIos);
-    flutterLocalNotificationsPlugin.initialize(initSettings,
-        onSelectNotification: onSelectNotification).then((x)=>debugPrint(x.toString()));
+    debugPrint('Raw initState');
+    flutterLocalNotificationsPlugin
+        .initialize(initSettings, onSelectNotification: onSelectNotification)
+        .then((x) => debugPrint('InitState and initialised called'));
 
     super.initState();
   }
@@ -118,6 +135,6 @@ class SecondScreen extends StatelessWidget {
         appBar: AppBar(
           title: Text('Notification call'),
         ),
-        body: Center(child: Text(pay)));
+        body: Center(child: RaisedButton(child: Text(pay), onPressed: ()=>Navigator.of(context).pop(),)));
   }
 }
