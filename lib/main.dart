@@ -4,7 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-void main() => runApp(MyApp());
+bool notificationLaunched = false;
+final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  notificationLaunched =
+      (await flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails())
+          .didNotificationLaunchApp;
+  runApp(MyApp());
+}
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
@@ -16,6 +24,9 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       home: MyHomePage(),
+      routes: {
+        '/second':(_)=>SecondScreen('routeCall'),
+      },
     );
   }
 }
@@ -25,16 +36,14 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
-  bool first= true;
+class _MyHomePageState extends State<MyHomePage> { 
   Future onSelectNotification(String payload) async {
     debugPrint('onSelectNotification');
     if (payload != null) {
       debugPrint('notification payload: ' + payload);
     }
-    await Navigator.push(context,
-        MaterialPageRoute(builder: (context) => SecondScreen(payload)));
+    await Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => SecondScreen(payload)),ModalRoute.withName('/'));
   }
 
   Future<void> onDidReceiveLocalNotification(
@@ -93,12 +102,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void initState() {
-    flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
     var initAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
     var initIos = IOSInitializationSettings(
         onDidReceiveLocalNotification: onDidReceiveLocalNotification);
     var initSettings = InitializationSettings(initAndroid, initIos);
-    debugPrint('Raw initState');
     flutterLocalNotificationsPlugin
         .initialize(initSettings, onSelectNotification: onSelectNotification)
         .then((x) => debugPrint('InitState and initialised called'));
@@ -135,6 +142,10 @@ class SecondScreen extends StatelessWidget {
         appBar: AppBar(
           title: Text('Notification call'),
         ),
-        body: Center(child: RaisedButton(child: Text(pay), onPressed: ()=>Navigator.of(context).pop(),)));
+        body: Center(
+            child: RaisedButton(
+          child: Text(pay),
+          onPressed: () => Navigator.of(context).pop(),
+        )));
   }
 }
