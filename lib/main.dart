@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
       ),
       home: MyHomePage(),
       routes: {
-        '/second':(_)=>SecondScreen('routeCall'),
+        '/second': (_) => SecondScreen('routeCall'),
       },
     );
   }
@@ -36,16 +36,7 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> { 
-  Future onSelectNotification(String payload) async {
-    debugPrint('onSelectNotification');
-    if (payload != null) {
-      debugPrint('notification payload: ' + payload);
-    }
-    await Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => SecondScreen(payload)),ModalRoute.withName('/'));
-  }
-
+class _MyHomePageState extends State<MyHomePage> {
   Future<void> onDidReceiveLocalNotification(
       int id, String title, String body, String payload) async {
     // display a dialog with the notification details, tap ok to go to another page
@@ -76,14 +67,17 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> _scheduleNotification() async {
     var scheduleTime = DateTime.now().add(Duration(seconds: 5));
     var androidPlatformChannelSpecifics = AndroidNotificationDetails(
-      'channel_id',
-      'channel_name',
-      'description',
+      'channe',
+      'channe',
+      'descrip',
       ticker: 'ticker',
       importance: Importance.Max,
       priority: Priority.Max,
       playSound: true,
+      sound: "sound",
       category: "call",
+      onlyAlertOnce: false,
+      enableVibration: true,
       ongoing: true,
     );
     var iOSPlatformChannelSpecifics = IOSNotificationDetails();
@@ -95,7 +89,7 @@ class _MyHomePageState extends State<MyHomePage> {
       'Alarm',
       scheduleTime,
       platformChannelSpecifics,
-      payload: 'alarm',
+      payload: 'alarm with sound',
       androidAllowWhileIdle: true,
     );
   }
@@ -106,9 +100,16 @@ class _MyHomePageState extends State<MyHomePage> {
     var initIos = IOSInitializationSettings(
         onDidReceiveLocalNotification: onDidReceiveLocalNotification);
     var initSettings = InitializationSettings(initAndroid, initIos);
-    flutterLocalNotificationsPlugin
-        .initialize(initSettings, onSelectNotification: onSelectNotification)
-        .then((x) => debugPrint('InitState and initialised called'));
+    flutterLocalNotificationsPlugin.initialize(initSettings,
+        onSelectNotification: (String payload) async {
+      debugPrint('onSelectNotification');
+      if (payload != null) {
+        debugPrint('notification payload: ' + payload);
+      }
+      await Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => SecondScreen(payload)),
+          ModalRoute.withName('/'));
+    }).then((x) => debugPrint('InitState and initialised called'));
 
     super.initState();
   }
